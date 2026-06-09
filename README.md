@@ -102,7 +102,7 @@ backend's `POST /assess-risk` endpoint and exercised through **Swagger UI** (see
 - Loads `guarantorlens_xgb.joblib`, rebuilds the same as-of features, returns risk score + SHAP reasons + network.
 - PostgreSQL for loans/members/guarantees; config via env vars (`DATABASE_URL`, `MODEL_PATH`).
 - **Setup:** `pip install -r requirements.txt` → `uvicorn app.main:app --reload`. Full steps in the backend repo README.
-- **Deployed:** https://guarantorlens-mission-capstone-be.onrender.com  •  Swagger: ‹ [Render URL ›/docs](https://guarantorlens-mission-capstone-be.onrender.com/docs).
+- **Deployed:** https://guarantorlens-mission-capstone-be.onrender.com  •  Swagger: https://guarantorlens-mission-capstone-be.onrender.com/docs.
 
 ### Database schema (overview)
 - **members** (`member_id`, `opening_date`, `branch`)
