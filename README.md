@@ -16,14 +16,14 @@ and explains every score in plain language. Capstone, BSc Software Engineering (
 |---|---|
 | **Video demo (YouTube, 5-10 min)** | ‹ paste YouTube link › |
 | **Frontend - live app** | ‹ paste Vercel/Netlify URL › |
-| **Backend - Swagger / API docs** | ‹ paste Render URL ›/docs |
+| **Backend - Swagger / API docs** | ‹ https://guarantorlens-mission-capstone-be.onrender.com/docs |
 
 ### Repositories
 
 | Component | Repo | Hosted on |
 |---|---|---|
 | **Frontend** (React) | ‹ github.com/USER/guarantorlens-frontend › | Vercel / Netlify |
-| **Backend** (FastAPI + PostgreSQL) | ‹ github.com/USER/guarantorlens-backend › | Render / Railway |
+| **Backend** (FastAPI + PostgreSQL) | https://github.com/Best-Verie/guarantorLens_mission_capstone_BE | Render  |
 | **ML / Model** (this repo) | ‹ github.com/USER/guarantorlens-ml › | Google Colab + model artifact |
 
 >  **Pre-submission checklist:** YouTube link added • Figma/designs link added • FE live URL works •
@@ -102,7 +102,7 @@ backend's `POST /assess-risk` endpoint and exercised through **Swagger UI** (see
 - Loads `guarantorlens_xgb.joblib`, rebuilds the same as-of features, returns risk score + SHAP reasons + network.
 - PostgreSQL for loans/members/guarantees; config via env vars (`DATABASE_URL`, `MODEL_PATH`).
 - **Setup:** `pip install -r requirements.txt` → `uvicorn app.main:app --reload`. Full steps in the backend repo README.
-- **Deployed:** ‹ Render/Railway URL ›  •  Swagger: ‹ Render URL ›/docs.
+- **Deployed:** https://guarantorlens-mission-capstone-be.onrender.com  •  Swagger: ‹ [Render URL ›/docs](https://guarantorlens-mission-capstone-be.onrender.com/docs).
 
 ### Database schema (overview)
 - **members** (`member_id`, `opening_date`, `branch`)
@@ -118,7 +118,7 @@ backend's `POST /assess-risk` endpoint and exercised through **Swagger UI** (see
 | Component | Host (free tier) | How it deploys | URL |
 |---|---|---|---|
 | Frontend | Vercel / Netlify | Auto-deploy on push to `main` | ‹ link › |
-| Backend (API + Swagger) | Render / Railway | Auto-deploy on push; `uvicorn` web service | ‹ link ›/docs |
+| Backend (API + Swagger) | Render  | Auto-deploy on push; `uvicorn` web service | https://guarantorlens-mission-capstone-be.onrender.com/docs |
 | Database | Neon / Supabase (Postgres) | Managed instance, `DATABASE_URL` env var | n/a |
 | Model | Colab notebook + `joblib` artifact served by the API | Re-train in Colab, commit/upload artifact | via `/assess-risk` |
 
