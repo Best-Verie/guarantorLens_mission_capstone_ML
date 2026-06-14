@@ -10,19 +10,19 @@ and explains every score in plain language. Capstone, BSc Software Engineering (
 
 ---
 
-##  Submission links 
+##  Submission links (fill these before submitting)
 
 | Item | Link |
 |---|---|
 | **Video demo (YouTube, 5-10 min)** | ‹ paste YouTube link › |
-| **Frontend - live app** | https://guarantor-lens-mission-capstone-fe.vercel.app/ |
-| **Backend - Swagger / API docs** |  https://guarantorlens-mission-capstone-be.onrender.com/docs |
+| **Frontend - live app** | ‹ paste Vercel/Netlify URL › |
+| **Backend - Swagger / API docs** | ‹ https://guarantorlens-mission-capstone-be.onrender.com/docs |
 
 ### Repositories
 
 | Component | Repo | Hosted on |
 |---|---|---|
-| **Frontend** (React) | https://github.com/Best-Verie/guarantorLens_mission_capstone_FE | Vercel  |
+| **Frontend** (React) | ‹ github.com/USER/guarantorlens-frontend › | Vercel / Netlify |
 | **Backend** (FastAPI + PostgreSQL) | https://github.com/Best-Verie/guarantorLens_mission_capstone_BE | Render  |
 | **ML / Model** (this repo) | ‹ github.com/USER/guarantorlens-ml › | Google Colab + model artifact |
 
@@ -32,8 +32,8 @@ and explains every score in plain language. Capstone, BSc Software Engineering (
 
 This is an ML project with a full-stack demo around it. The quickest path:
 1. **Watch the video demo** (link above) - it walks the whole flow.
-2. **Open the live app** and use the navigation.
-3. **Open Swagger** (`/docs`) and try `GET /health`.
+2. **Open the live app** and use the navigation: **Sign in → Dashboard → Assess a loan → Result → Download report**, and **Reports**.
+3. **Open Swagger** (`/docs`) and try `GET /health` and `POST /assess-risk`.
 4. **Open the notebook** for the data visualizations, model architecture, and metrics.
 
 ---
@@ -70,6 +70,8 @@ Google Colab. It contains the three required parts:
    matrix, and SHAP importance, comparing **baseline (individual features)** vs
    **augmented (+ guarantor-network features)**.
 
+**Deployment option (ML):** the trained artifact `models/guarantorlens_xgb.joblib` is served by the
+backend's `POST /assess-risk` endpoint and exercised through **Swagger UI** (see Backend below).
 
 
 ### Run the notebook (Colab)
@@ -81,12 +83,36 @@ Google Colab. It contains the three required parts:
 
 ---
 
+##  Frontend (see frontend repo)
+
+- React (Vite) dashboard for loan officers. Pages: sign-in, sign-up, dashboard, assess-a-loan form,
+  result (risk gauge + SHAP reasons + guarantor network), member view, reports list, printable report.
+- Responsive layout; calls the backend via `VITE_API_URL` (env var).
+- **Setup:** `npm install` → `npm run dev` (local) / `npm run build` (prod). Full steps in the frontend repo README.
+- **Deployed:** ‹ Vercel/Netlify URL ›.
+
+##  Backend (see backend repo)
+
+- FastAPI service. Endpoints: `GET /health`, `POST /assess-risk` (main), 
+- Loads `guarantorlens_xgb.joblib`, rebuilds the same as-of features, returns risk score + SHAP reasons + network.
+- PostgreSQL for loans/members/guarantees; config via env vars (`DATABASE_URL`, `MODEL_PATH`).
+- **Setup:** `pip install -r requirements.txt` → `uvicorn app.main:app --reload`. Full steps in the backend repo README.
+- **Deployed:** https://guarantorlens-mission-capstone-be.onrender.com  •  Swagger: https://guarantorlens-mission-capstone-be.onrender.com/docs.
+
+### Database schema (overview)
+- **members** (`member_id`, `opening_date`, `branch`)
+- **loans** (`loan_id`, `member_id`, `amount`, `disbursement_date`, `rate`, `outcome`)
+- **guarantees** (`loan_id`, `guarantor_member_id`, `date_guaranteed`)
+
+(One member can guarantee many loans; one loan can have many guarantors.)
+
+---
 
 ##  Deployment plan
 
 | Component | Host (free tier) | How it deploys | URL |
 |---|---|---|---|
-| Frontend | Vercel / Netlify | Auto-deploy on push to `main` | https://github.com/Best-Verie/guarantorLens_mission_capstone_FE|
+| Frontend | Vercel / Netlify | Auto-deploy on push to `main` | ‹ link › |
 | Backend (API + Swagger) | Render  | Auto-deploy on push; `uvicorn` web service | https://guarantorlens-mission-capstone-be.onrender.com/docs |
 | Database | Neon / Supabase (Postgres) | Managed instance, `DATABASE_URL` env var | n/a |
 | Model | Colab notebook + `joblib` artifact served by the API | Re-train in Colab, commit/upload artifact | via `/assess-risk` |
