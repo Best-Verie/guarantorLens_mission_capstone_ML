@@ -1,0 +1,241 @@
+setup done | xgboost available: True
+settings | cohort=True [2022-01-01..2023-12-31] | split=group | drop_proxies=True | network_in_model=['g_mean_savings', 'g_mean_salary', 'g_prior_default_rate']
+read 3 files | 24171 rows | branches: ['Gasabo', 'Kicukiro', 'Nyarugenge']
+columns: Loan ID, Borrower ID, Guarantor ID, Date Guaranteed, Customer Opening Date, Disbursement Amount, Disbursement Date, Last Payment Date, Interest Rate, Non Paid Capital, Non Paid Interest, Non Paid Penalty, Non Paid Insurance, Days in Arrears, Repayment Status, Savings, Salary, branch, is_written_off
+saved outputs/02_eda_overview.png
+3357 loans | 11.5% bad
+borrower features used: log_amount, savings, salary, loan_to_savings, loan_to_salary, b_prior_loans, b_prior_writeoff
+matured cohort [2022-01-01..2023-12-31]: kept 1080 of 3357 loans | 15.5% bad
+red-flag check done | disb-date proxy AUC = 0.667
+saved outputs/03_target_eda.png
+split [group] -> train 811 (15.3% bad) | test 269 (16.0% bad)
+baseline models:
+                     ROC-AUC  PR-AUC
+model                               
+Baseline               0.500   0.160
+Logistic Regression    0.661   0.349
+Decision Tree          0.744   0.403
+Random Forest          0.894   0.636
+Neural Network         0.391   0.126
+XGBoost                0.862   0.653
+
+=== Logistic Regression: 10 experiments | BEST = exp 1 | CV PR-AUC 0.339 | {'logisticregression__C': 0.01} ===
+ exp_no      C  PR_AUC  PR_std  ROC_AUC  rank    best
+      1   0.01  0.3388  0.0510   0.6420     1 << BEST
+      2   0.03  0.3319  0.0647   0.6409     2        
+      3   0.10  0.3201  0.0808   0.6399     3        
+      4   0.30  0.3188  0.0803   0.6403     4        
+      5   1.00  0.3185  0.0827   0.6409     5        
+      6   3.00  0.3183  0.0832   0.6410     6        
+      8  30.00  0.3181  0.0830   0.6409     7        
+      7  10.00  0.3181  0.0830   0.6408     8        
+      9 100.00  0.3181  0.0830   0.6408     9        
+     10 300.00  0.3181  0.0830   0.6407    10        
+
+=== Decision Tree: 10 experiments | BEST = exp 2 | CV PR-AUC 0.440 | {'decisiontreeclassifier__min_samples_leaf': 10, 'decisiontreeclassifier__max_depth': 8} ===
+ exp_no  min_samples_leaf  max_depth  PR_AUC  PR_std  ROC_AUC  rank    best
+      2                10          8  0.4399  0.0890   0.7820     1 << BEST
+      5                20          6  0.4368  0.1047   0.7947     2        
+      6                20          5  0.4313  0.0982   0.7907     3        
+      1                10         15  0.4270  0.0925   0.7664     4        
+      4                30          6  0.3759  0.0701   0.7855     5        
+      7                 5          4  0.3735  0.0714   0.7618     6        
+      9                 1          3  0.3239  0.0565   0.7425     7        
+     10                 1          2  0.3145  0.0550   0.7146     8        
+      3                 1         12  0.3063  0.0518   0.6684     9        
+      8                 1         15  0.2907  0.0494   0.6643    10        
+
+=== Random Forest: 10 experiments | BEST = exp 7 | CV PR-AUC 0.611 | {'randomforestclassifier__n_estimators': 100, 'randomforestclassifier__min_samples_leaf': 1, 'randomforestclassifier__max_depth': None} ===
+ exp_no  n_estimators  min_samples_leaf  max_depth  PR_AUC  PR_std  ROC_AUC  rank    best
+      7           100                 1        NaN  0.6107  0.1023   0.8634     1 << BEST
+      9           500                 2       12.0  0.5968  0.0999   0.8510     2        
+      3           100                 3        6.0  0.5446  0.0794   0.8210     3        
+      5           300                 1        4.0  0.5199  0.0858   0.8039     4        
+      1           300                 1        4.0  0.5199  0.0858   0.8039     4        
+      4           100                 5        5.0  0.4995  0.0948   0.8062     6        
+     10           200                 5        4.0  0.4818  0.0948   0.8003     7        
+      2           600                10        8.0  0.4761  0.0997   0.8143     8        
+      8           100                 5        3.0  0.4720  0.0891   0.7849     9        
+      6           200                 5        3.0  0.4694  0.0930   0.7791    10        
+
+=== Neural Network: 10 experiments | BEST = exp 4 | CV PR-AUC 0.393 | {'mlpclassifier__learning_rate_init': 0.003, 'mlpclassifier__hidden_layer_sizes': (64, 32, 16), 'mlpclassifier__alpha': 0.001, 'mlpclassifier__activation': 'relu'} ===
+ exp_no  learning_rate_init hidden_layer_sizes  alpha activation  PR_AUC  PR_std  ROC_AUC  rank    best
+      4               0.003       (64, 32, 16) 0.0010       relu  0.3934  0.0618   0.6613     1 << BEST
+      7               0.003           (64, 64) 0.0100       relu  0.3433  0.1219   0.6178     2        
+      9               0.002           (50, 25) 0.0001       relu  0.3281  0.0734   0.5963     3        
+      8               0.003             (128,) 0.0100       tanh  0.3064  0.0392   0.6223     4        
+      6               0.001           (64, 64) 0.0100       tanh  0.2612  0.1066   0.5857     5        
+      1               0.001           (50, 25) 0.0100       relu  0.2561  0.0561   0.5521     6        
+      5               0.005           (32, 16) 0.0100       relu  0.2442  0.1094   0.5844     7        
+     10               0.010             (128,) 0.0010       relu  0.1980  0.0450   0.5194     8        
+      3               0.001       (64, 32, 16) 0.0010       relu  0.1828  0.0493   0.4400     9        
+      2               0.001           (64, 64) 0.0050       relu  0.1463  0.0276   0.4421    10        
+
+=== XGBoost: 10 experiments | BEST = exp 8 | CV PR-AUC 0.592 | {'xgbclassifier__subsample': 0.9, 'xgbclassifier__reg_lambda': 1, 'xgbclassifier__n_estimators': 350, 'xgbclassifier__min_child_weight': 1, 'xgbclassifier__max_depth': 4, 'xgbclassifier__learning_rate': 0.05, 'xgbclassifier__gamma': 0.2, 'xgbclassifier__colsample_bytree': 0.9} ===
+ exp_no  subsample  reg_lambda  n_estimators  min_child_weight  max_depth  learning_rate  gamma  colsample_bytree  PR_AUC  PR_std  ROC_AUC  rank    best
+      8       0.90           1           350                 1          4           0.05    0.2               0.9  0.5924  0.1235   0.8377     1 << BEST
+     10       0.90           3           400                 1          6           0.03    0.0               0.9  0.5765  0.1200   0.8387     2        
+      5       0.90           3           200                 3          4           0.10    0.2               0.8  0.5653  0.0980   0.8285     3        
+      1       0.85           1           450                 3          5           0.08    0.1               0.8  0.5621  0.1100   0.8294     4        
+      3       0.90           4           400                 3          5           0.05    0.0               0.9  0.5616  0.1143   0.8277     5        
+      9       0.90           2           400                 3          4           0.10    0.0               0.9  0.5582  0.1070   0.8183     6        
+      4       0.80           4           350                 2          5           0.03    0.0               0.9  0.5549  0.1064   0.8314     7        
+      6       0.80           3           550                 4          5           0.03    0.1               1.0  0.5544  0.1076   0.8215     8        
+      7       0.70           5           450                 3          6           0.03    0.0               0.9  0.5532  0.1060   0.8291     9        
+      2       0.80           5           200                 3          5           0.03    0.0               0.9  0.5268  0.0829   0.8234    10        
+metric leader by PR-AUC: XGBoost | DEPLOYED model: XGBoost (native SHAP)
+                     ROC-AUC  PR-AUC  recall@0.5  precision@0.5
+model                                                          
+Logistic Regression    0.634   0.359       0.605          0.234
+Decision Tree          0.776   0.486       0.744          0.327
+Random Forest          0.893   0.627       0.442          0.633
+Neural Network         0.630   0.367       0.070          0.750
+XGBoost                0.872   0.682       0.674          0.547
+saved outputs/07_best_baseline_eval.png
+network IN model     : g_mean_savings, g_mean_salary, g_prior_default_rate
+network DROPPED (leaky, descriptive only): n_guarantors, g_load_asof_mean, g_load_asof_max
+MODEL features (10): log_amount, savings, salary, loan_to_savings, loan_to_salary, b_prior_loans, b_prior_writeoff, g_mean_savings, g_mean_salary, g_prior_default_rate
+deployed XGBoost on 10 features: ROC 0.883 | PR 0.737
+model leaderboard (on the DEPLOYED feature set):
+                     ROC-AUC  PR-AUC
+model                               
+XGBoost                0.883   0.737
+Random Forest          0.894   0.700
+Neural Network         0.792   0.601
+Decision Tree          0.732   0.483
+Logistic Regression    0.625   0.338
+borrower-only       : ROC 0.872 | PR 0.682
++ leak-free network : ROC 0.883 | PR 0.737  (lift ROC +0.011, PR +0.055)
+network ROC lift 95% CI [-0.037, +0.060] (not significant - spans 0)
+OUT-OF-TIME (train earlier 75%, test later 25%): ROC 0.897 | PR 0.474 | test bad rate 0.059
+saved feature importance
+saved NN training/loss curve
+saved XGBoost training curve
+saved learning curve
+saved SHAP global + per-loan drivers
+percentile bands: {'medium': 0.136, 'high': 0.79}
+315 active loans are 90+ days in arrears (watchlist)
+348 healthy active loans scored
+found 27 communities
+saved guarantorlens_model.joblib, members.json, loans.json
+zipped outputs/ -> guarantorlens_outputs.zip
+setup done | xgboost available: True
+settings | cohort=True [2022-01-01..2023-12-31] | split=group | drop_proxies=True | network_in_model=['g_mean_savings', 'g_mean_salary', 'g_prior_default_rate']
+read 3 files | 24171 rows | branches: ['Gasabo (1)', 'Kicukiro (1)', 'Nyarugenge (1)']
+columns: Loan ID, Borrower ID, Guarantor ID, Date Guaranteed, Customer Opening Date, Disbursement Amount, Disbursement Date, Last Payment Date, Interest Rate, Non Paid Capital, Non Paid Interest, Non Paid Penalty, Non Paid Insurance, Days in Arrears, Repayment Status, Savings, Salary, branch, is_written_off
+saved outputs/02_eda_overview.png
+3357 loans | 11.5% bad
+borrower features used: log_amount, savings, salary, loan_to_savings, loan_to_salary, b_prior_loans, b_prior_writeoff
+matured cohort [2022-01-01..2023-12-31]: kept 1080 of 3357 loans | 15.5% bad
+red-flag check done | disb-date proxy AUC = 0.667
+saved outputs/03_target_eda.png
+split [group] -> train 811 (15.3% bad) | test 269 (16.0% bad)
+baseline models:
+                     ROC-AUC  PR-AUC
+model                               
+Baseline               0.500   0.160
+Logistic Regression    0.661   0.349
+Decision Tree          0.744   0.403
+Random Forest          0.894   0.636
+Neural Network         0.391   0.126
+XGBoost                0.862   0.653
+
+=== Logistic Regression: 10 experiments | BEST = exp 1 | CV PR-AUC 0.339 | {'logisticregression__C': 0.01} ===
+ exp_no      C  PR_AUC  PR_std  ROC_AUC  rank    best
+      1   0.01  0.3388  0.0510   0.6420     1 << BEST
+      2   0.03  0.3319  0.0647   0.6409     2        
+      3   0.10  0.3201  0.0808   0.6399     3        
+      4   0.30  0.3188  0.0803   0.6403     4        
+      5   1.00  0.3185  0.0827   0.6409     5        
+      6   3.00  0.3183  0.0832   0.6410     6        
+      8  30.00  0.3181  0.0830   0.6409     7        
+      7  10.00  0.3181  0.0830   0.6408     8        
+      9 100.00  0.3181  0.0830   0.6408     9        
+     10 300.00  0.3181  0.0830   0.6407    10        
+
+=== Decision Tree: 10 experiments | BEST = exp 2 | CV PR-AUC 0.440 | {'decisiontreeclassifier__min_samples_leaf': 10, 'decisiontreeclassifier__max_depth': 8} ===
+ exp_no  min_samples_leaf  max_depth  PR_AUC  PR_std  ROC_AUC  rank    best
+      2                10          8  0.4399  0.0890   0.7820     1 << BEST
+      5                20          6  0.4368  0.1047   0.7947     2        
+      6                20          5  0.4313  0.0982   0.7907     3        
+      1                10         15  0.4270  0.0925   0.7664     4        
+      4                30          6  0.3759  0.0701   0.7855     5        
+      7                 5          4  0.3735  0.0714   0.7618     6        
+      9                 1          3  0.3239  0.0565   0.7425     7        
+     10                 1          2  0.3145  0.0550   0.7146     8        
+      3                 1         12  0.3063  0.0518   0.6684     9        
+      8                 1         15  0.2907  0.0494   0.6643    10        
+
+=== Random Forest: 10 experiments | BEST = exp 7 | CV PR-AUC 0.611 | {'randomforestclassifier__n_estimators': 100, 'randomforestclassifier__min_samples_leaf': 1, 'randomforestclassifier__max_depth': None} ===
+ exp_no  n_estimators  min_samples_leaf  max_depth  PR_AUC  PR_std  ROC_AUC  rank    best
+      7           100                 1        NaN  0.6107  0.1023   0.8634     1 << BEST
+      9           500                 2       12.0  0.5968  0.0999   0.8510     2        
+      3           100                 3        6.0  0.5446  0.0794   0.8210     3        
+      5           300                 1        4.0  0.5199  0.0858   0.8039     4        
+      1           300                 1        4.0  0.5199  0.0858   0.8039     4        
+      4           100                 5        5.0  0.4995  0.0948   0.8062     6        
+     10           200                 5        4.0  0.4818  0.0948   0.8003     7        
+      2           600                10        8.0  0.4761  0.0997   0.8143     8        
+      8           100                 5        3.0  0.4720  0.0891   0.7849     9        
+      6           200                 5        3.0  0.4694  0.0930   0.7791    10        
+
+=== Neural Network: 10 experiments | BEST = exp 4 | CV PR-AUC 0.393 | {'mlpclassifier__learning_rate_init': 0.003, 'mlpclassifier__hidden_layer_sizes': (64, 32, 16), 'mlpclassifier__alpha': 0.001, 'mlpclassifier__activation': 'relu'} ===
+ exp_no  learning_rate_init hidden_layer_sizes  alpha activation  PR_AUC  PR_std  ROC_AUC  rank    best
+      4               0.003       (64, 32, 16) 0.0010       relu  0.3934  0.0618   0.6613     1 << BEST
+      7               0.003           (64, 64) 0.0100       relu  0.3433  0.1219   0.6178     2        
+      9               0.002           (50, 25) 0.0001       relu  0.3281  0.0734   0.5963     3        
+      8               0.003             (128,) 0.0100       tanh  0.3064  0.0392   0.6223     4        
+      6               0.001           (64, 64) 0.0100       tanh  0.2612  0.1066   0.5857     5        
+      1               0.001           (50, 25) 0.0100       relu  0.2561  0.0561   0.5521     6        
+      5               0.005           (32, 16) 0.0100       relu  0.2442  0.1094   0.5844     7        
+     10               0.010             (128,) 0.0010       relu  0.1980  0.0450   0.5194     8        
+      3               0.001       (64, 32, 16) 0.0010       relu  0.1828  0.0493   0.4400     9        
+      2               0.001           (64, 64) 0.0050       relu  0.1463  0.0276   0.4421    10        
+
+=== XGBoost: 10 experiments | BEST = exp 8 | CV PR-AUC 0.592 | {'xgbclassifier__subsample': 0.9, 'xgbclassifier__reg_lambda': 1, 'xgbclassifier__n_estimators': 350, 'xgbclassifier__min_child_weight': 1, 'xgbclassifier__max_depth': 4, 'xgbclassifier__learning_rate': 0.05, 'xgbclassifier__gamma': 0.2, 'xgbclassifier__colsample_bytree': 0.9} ===
+ exp_no  subsample  reg_lambda  n_estimators  min_child_weight  max_depth  learning_rate  gamma  colsample_bytree  PR_AUC  PR_std  ROC_AUC  rank    best
+      8       0.90           1           350                 1          4           0.05    0.2               0.9  0.5924  0.1235   0.8377     1 << BEST
+     10       0.90           3           400                 1          6           0.03    0.0               0.9  0.5765  0.1200   0.8387     2        
+      5       0.90           3           200                 3          4           0.10    0.2               0.8  0.5653  0.0980   0.8285     3        
+      1       0.85           1           450                 3          5           0.08    0.1               0.8  0.5621  0.1100   0.8294     4        
+      3       0.90           4           400                 3          5           0.05    0.0               0.9  0.5616  0.1143   0.8277     5        
+      9       0.90           2           400                 3          4           0.10    0.0               0.9  0.5582  0.1070   0.8183     6        
+      4       0.80           4           350                 2          5           0.03    0.0               0.9  0.5549  0.1064   0.8314     7        
+      6       0.80           3           550                 4          5           0.03    0.1               1.0  0.5544  0.1076   0.8215     8        
+      7       0.70           5           450                 3          6           0.03    0.0               0.9  0.5532  0.1060   0.8291     9        
+      2       0.80           5           200                 3          5           0.03    0.0               0.9  0.5268  0.0829   0.8234    10        
+metric leader by PR-AUC: XGBoost | DEPLOYED model: XGBoost (native SHAP)
+                     ROC-AUC  PR-AUC  recall@0.5  precision@0.5
+model                                                          
+Logistic Regression    0.634   0.359       0.605          0.234
+Decision Tree          0.776   0.486       0.744          0.327
+Random Forest          0.893   0.627       0.442          0.633
+Neural Network         0.630   0.367       0.070          0.750
+XGBoost                0.872   0.682       0.674          0.547
+saved outputs/07_best_baseline_eval.png
+network IN model     : g_mean_savings, g_mean_salary, g_prior_default_rate
+network DROPPED (leaky, descriptive only): n_guarantors, g_load_asof_mean, g_load_asof_max
+MODEL features (10): log_amount, savings, salary, loan_to_savings, loan_to_salary, b_prior_loans, b_prior_writeoff, g_mean_savings, g_mean_salary, g_prior_default_rate
+deployed XGBoost on 10 features: ROC 0.883 | PR 0.737
+model leaderboard (on the DEPLOYED feature set):
+                     ROC-AUC  PR-AUC
+model                               
+XGBoost                0.883   0.737
+Random Forest          0.894   0.700
+Neural Network         0.792   0.601
+Decision Tree          0.732   0.483
+Logistic Regression    0.625   0.338
+borrower-only       : ROC 0.872 | PR 0.682
++ leak-free network : ROC 0.883 | PR 0.737  (lift ROC +0.011, PR +0.055)
+network ROC lift 95% CI [-0.037, +0.060] (not significant - spans 0)
+OUT-OF-TIME (train earlier 75%, test later 25%): ROC 0.897 | PR 0.474 | test bad rate 0.059
+saved feature importance
+saved NN training/loss curve
+saved XGBoost training curve
+saved learning curve
+saved SHAP global + per-loan drivers
+percentile bands: {'medium': 0.136, 'high': 0.79}
+315 active loans are 90+ days in arrears (watchlist)
+348 healthy active loans scored
+found 27 communities
+saved guarantorlens_model.joblib, members.json, loans.json
