@@ -1,3 +1,0 @@
-,ROC-AUC,PR-AUC
-borrower-only,0.872,0.682
-+ leak-free network,0.883,0.737

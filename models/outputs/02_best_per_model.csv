@@ -1,0 +1,6 @@
+model,features,settings_tried,cv_pr_auc,best_params
+xgboost,borrower_only,24,0.612,"{'clf__learning_rate': 0.15, 'clf__max_depth': 4, 'clf__n_estimators': 500}"
+random_forest,borrower_plus_network,20,0.486,"{'clf__max_depth': None, 'clf__min_samples_leaf': 3}"
+decision_tree,borrower_only,20,0.379,"{'clf__max_depth': 8, 'clf__min_samples_leaf': 10}"
+neural_net,borrower_plus_network,20,0.35,"{'clf__alpha': 0.01, 'clf__hidden_layer_sizes': (64, 32)}"
+logistic_regression,borrower_plus_network,20,0.346,"{'clf__C': 0.3, 'clf__class_weight': None}"

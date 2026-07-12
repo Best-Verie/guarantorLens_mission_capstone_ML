@@ -1,4 +1,0 @@
-dropped_feature,single_AUC,corr_with_date,reason
-n_guarantors,0.044,0.1,truncated guarantor list (artifact)
-g_load_asof_mean,0.442,0.62,cumulative count = time proxy
-g_load_asof_max,0.33,0.58,cumulative count = time proxy

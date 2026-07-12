@@ -76,10 +76,45 @@ backend's `POST /assess-risk` endpoint and exercised through **Swagger UI** (see
 
 ### Run the notebook (Colab)
 1. Open `notebooks/train.ipynb` in Google Colab.
-2. Run the **Setup** cell (installs the libraries).
-3. Run **Load the data** and upload `Loans with Guarantors Data.xlsx` when prompted.
-   The data is **real and never committed** (git-ignored); it must be uploaded each session.
-4. Run all cells. The final cell saves and downloads `guarantorlens_xgb.joblib`.
+2. Upload the six branch workbooks when prompted, or mount Drive and point `DATASET_DIR` to the folder.
+3. Run all cells. The notebook saves and downloads a zipped output folder with the model artifact,
+   leakage audit tables, leaderboard, network-lift table, and JSON files for the backend.
+
+### Re-train with 2025/2026 branch workbooks in Colab
+
+The training pipeline lives in [`notebooks/train.ipynb`](notebooks/train.ipynb), not a separate
+`.py` script. It reads all branch Excel files, collapses guarantor-level rows to one row per loan,
+keeps the latest yearly snapshot when a loan appears in both 2025 and 2026, and computes borrower
+plus guarantor-network features as of the loan disbursement date.
+
+The notebook has an executable leakage policy. It blocks outcome/post-outcome fields
+(`Days in Arrears`, `Repayment Status`, `Last Payment Date`, unpaid balances), mutable yearly
+snapshot values (`Savings`, `Salary`, ratios derived from them), and calendar/vintage shortcuts
+from entering model training. If any blocked feature is added to the model allowlist, the notebook
+raises an error before fitting.
+
+Current main run, using Gasabo, Kicukiro, and Nyarugenge 2025/2026 files:
+
+| Item | Result |
+|---|---:|
+| Raw rows | 54,775 |
+| Unique loans | 10,772 |
+| Matured cohort | 6,330 loans, 4.6% defaults |
+| Test split | 1,584 loans, 66 defaults |
+| Best model | XGBoost + SMOTE, borrower + network features |
+| Leak-free deployed features | interest rate, amount, prior borrower history, prior guarantor-network history |
+| Test ROC-AUC / PR-AUC | 0.824 / 0.196 |
+| Threshold policy | Recall-first, target recall 0.80 |
+| Defaults caught at threshold | 53 of 66 (80.3% recall) |
+| Precision at threshold | 13.8% |
+| Supervised network PR lift vs borrower-only | +0.0381 |
+
+The notebook now exports tuning tables for every model family and feature set, plus visual evidence:
+`03_visual_summary.png`, `04_model_leaderboard.png`, `05_network_contribution.png`, and CSV tuning
+tables such as `tuning_borrower_plus_network_xgb_smote.csv`. It also reports anomaly-detection
+baselines (`IsolationForest`, `OneClassSVM`, `LocalOutlierFactor`, and kNN distance). These are
+useful for the defense because defaults are rare, but the notebook does not let them use blocked
+leakage features either.
 
 ---
 

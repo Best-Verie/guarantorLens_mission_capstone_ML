@@ -1,6 +1,0 @@
-model,ROC-AUC,PR-AUC
-XGBoost,0.883,0.737
-Random Forest,0.894,0.7
-Neural Network,0.792,0.601
-Decision Tree,0.732,0.483
-Logistic Regression,0.625,0.338
