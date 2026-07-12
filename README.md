@@ -10,7 +10,7 @@ and explains every score in plain language. Capstone, BSc Software Engineering (
 
 ---
 
-##  Submission links (fill these before submitting)
+##  Submission links 
 
 | Item | Link |
 |---|---|
