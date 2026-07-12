@@ -14,7 +14,7 @@ and explains every score in plain language. Capstone, BSc Software Engineering (
 
 | Item | Link |
 |---|---|
-| **Video demo (5-minute)** | https://share.vidyard.com/watch/84BXUMBe5Ynbbfnr1bBDf4 |
+| **FINAL Video demo ** | https://share.vidyard.com/watch/gpPeMjYJ1Y1tPrpSEpyUs5 |
 | **Frontend - live app** | https://guarantor-lens-mission-capstone-fe.vercel.app/login |
 | **Backend - Swagger / API docs** | https://guarantorlens-mission-capstone-be.onrender.com/docs |
 | **Screenshots Doc** | https://docs.google.com/document/d/1d1uwocIz-WZGkm-Uz3VA-sbiyGzbsk5JMvMBNCpxVN0/edit?usp=sharing |
