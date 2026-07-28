@@ -1,0 +1,35 @@
+%%{init: {"themeVariables": {"fontSize": "22px"}}}%%
+%% Machine-learning pipeline (left-to-right, compact for slides) -> paste into https://mermaid.live
+%% Solid = deployed supervised classifier. Dashed = unsupervised baseline (compared, lost).
+flowchart LR
+    A["Prepare &amp; merge data"]
+    B["Feature engineering<br/>(borrower + network)"]
+
+    subgraph TRAIN["Supervised training"]
+      direction TB
+      T1[Logistic Regression]
+      T2[Decision Tree]
+      T3[Random Forest]
+      T4[XGBoost]
+      T5[Feed-forward NN]
+      T1 ~~~ T2 ~~~ T3 ~~~ T4 ~~~ T5
+    end
+
+    U["Unsupervised baseline<br/>(compared, lost)"]
+    C["Best model<br/>selection"]
+    D["Best model<br/>+ network"]
+
+    subgraph FINAL["Finalise"]
+      direction TB
+      F1["Monotone constraints"] --> F2["Calibration"] --> F3["Risk bands"] --> F4["Explainability"] --> F5["Export bundle"]
+    end
+
+    E["Additional models &amp; analyses<br/>communities · contagion<br/>survival · clustering · anomaly"]
+    G["Deploy &amp; explain"]
+
+    A --> B
+    B --> TRAIN --> C
+    B -.-> U
+    U -.->|"supervised wins"| C
+    C --> D --> FINAL --> G
+    B --> E --> G

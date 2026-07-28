@@ -1,0 +1,67 @@
+%% Figure 3.x  Entity-Relationship Diagram  (paste into https://mermaid.live)
+erDiagram
+  USER ||--o{ APPLICATION : creates
+  APPLICATION ||--o{ RECOMMENDATION : has
+  USER ||--o{ RECOMMENDATION : authors
+  MEMBER ||--o{ LOAN : borrows
+  LOAN ||--o{ GUARANTEE : "backed by"
+  MEMBER ||--o{ GUARANTEE : guarantees
+
+  USER {
+    int id PK
+    string full_name
+    string email UK
+    string role
+    string hashed_password
+    datetime created_at
+  }
+  APPLICATION {
+    int id PK
+    int created_by FK
+    string borrower_id
+    float amount
+    float savings
+    float salary
+    float interest_rate
+    text guarantor_ids
+    int risk_score
+    string band
+    float probability
+    text segment
+    text unusual
+    string status
+    datetime created_at
+  }
+  RECOMMENDATION {
+    int id PK
+    int application_id FK
+    int author_id FK
+    string decision
+    text note
+    datetime created_at
+  }
+  MEMBER {
+    string member_id PK
+    string branch
+    float savings
+    float salary
+    int ever_defaulted
+    int loans_backed
+    string community_id
+    float community_default_rate
+  }
+  LOAN {
+    string loan_key PK
+    string borrower FK
+    float amount
+    date disb_date
+    string branch
+    float interest_rate
+    int label
+    string outcome
+  }
+  GUARANTEE {
+    int id PK
+    string loan_key FK
+    string guarantor FK
+  }

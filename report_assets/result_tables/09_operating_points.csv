@@ -1,0 +1,4 @@
+operating_point,threshold,precision,recall,f1,accuracy
+recall>=80% (screening),0.032,0.25,0.801,0.381,0.947
+F1-optimal (balanced),0.343,0.817,0.553,0.66,0.988
+precision>=0.50 (precise),0.139,0.5,0.633,0.559,0.979

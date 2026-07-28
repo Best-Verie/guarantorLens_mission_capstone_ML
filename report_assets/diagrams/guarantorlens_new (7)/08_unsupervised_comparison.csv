@@ -1,0 +1,4 @@
+method,roc,pr
+IsolationForest,0.889,0.232
+LocalOutlierFactor,0.598,0.031
+Supervised (+network),0.944,0.593

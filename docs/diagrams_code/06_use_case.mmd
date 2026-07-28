@@ -1,0 +1,26 @@
+%% Figure 3.x  Use-case diagram (Mermaid fallback if you only use mermaid.live)
+%% Mermaid has no native use-case shape, so actors and use cases are drawn as a graph.
+flowchart LR
+  LO(["Loan Officer"])
+  CM(["Credit Manager"])
+  AD(["Admin"])
+  subgraph GuarantorLens
+    UC1(["Assess loan risk"])
+    UC2(["Explain score (SHAP + plain)"])
+    UC3(["Simulate what-if & advisor"])
+    UC4(["Create & escalate application"])
+    UC5(["Explore member & network"])
+    UC6(["View insights & monitoring"])
+    UC7(["Review queue & recommend"])
+    UC8(["Manage model & data"])
+  end
+  LO --- UC1
+  LO --- UC4
+  LO --- UC5
+  LO --- UC6
+  CM --- UC7
+  CM --- UC1
+  AD --- UC8
+  UC1 -. include .-> UC2
+  UC1 -. include .-> UC3
+  CM -. is-a .-> LO

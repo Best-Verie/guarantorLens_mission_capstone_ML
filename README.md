@@ -105,7 +105,7 @@ Current run, using all 11 branch workbooks (loans disbursed 2022-2023):
 | Branches | 11 |
 | Deployed model | XGBoost + guarantor-network features, monotone-constrained, isotonic-calibrated |
 | Headline metric | PR-AUC (defaults are rare, so accuracy is misleading) |
-| PR-AUC / ROC-AUC (deployed) | **0.519 / 0.924** |
+| PR-AUC / ROC-AUC (deployed) | **0.603 / 0.932** |
 | PR baseline (bad rate) | 0.021 |
 | Threshold policy | Recall-first, target recall 0.80 |
 
@@ -114,24 +114,27 @@ Current run, using all 11 branch workbooks (loans disbursed 2022-2023):
 | Model set | PR-AUC | ROC-AUC |
 |---|---:|---:|
 | Baseline (bad rate) | 0.021 | 0.500 |
-| Borrower-only | 0.592 | 0.939 |
-| Network-only | 0.218 | 0.805 |
-| Borrower + network (unconstrained) | 0.593 | 0.944 |
-| Borrower + network (monotone, **deployed**) | 0.519 | 0.924 |
+| Borrower-only | 0.641 | 0.942 |
+| Network-only | 0.237 | 0.827 |
+| Borrower + network (unconstrained) | 0.653 | 0.952 |
+| Borrower + network (monotone, **deployed**) | 0.603 | 0.932 |
 
-**Reading it honestly:** the guarantor network is predictive on its own (PR 0.218 and ROC 0.805, far
-above the 0.021 base rate) and lifts ranking slightly when added (ROC 0.939 → 0.944). Its *incremental*
-PR lift over borrower-only is within noise, because risky borrowers tend to cluster with risky
-guarantors (homophily). The monotone constraints trade a little held-out PR for guaranteed sane
-behaviour in production (more savings never raises risk, a bigger loan never lowers it).
+**Reading it honestly:** the guarantor network is predictive on its own (PR 0.237 and ROC 0.827, far
+above the 0.021 base rate) and lifts ranking slightly when added (ROC 0.942 → 0.952). Its *incremental*
+PR lift over borrower-only is within noise (bootstrap +0.012, 95% CI [-0.019, +0.044]), because risky
+borrowers tend to cluster with risky guarantors (homophily). The monotone constraints trade a little
+held-out PR for guaranteed sane behaviour in production (more savings never raises risk, a bigger loan
+never lowers it).
 
 **Imbalance handling:** class weighting (PR 0.593) matched or beat every SMOTE variant tried
 (BorderlineSMOTE 0.543, SMOTETomek 0.519, SMOTE 0.516, ADASYN 0.512), so the deployed model uses
-class weighting, not synthetic oversampling.
+class weighting, not synthetic oversampling. The class weight itself (`scale_pos_weight`) is tuned:
+the neg/pos heuristic (48) is beaten by 1 (PR 0.594 → 0.653).
 
 **Anomaly-detection baselines** (`IsolationForest`, `LocalOutlierFactor`) are reported for context:
 the best unsupervised model reaches ROC 0.889 / PR 0.232, still well below the supervised model
-(ROC 0.944 / PR 0.593). Every model family is grid-searched with per-model tuning tables in
+(ROC 0.952 / PR 0.653). Every model family is randomized-searched (15 experiments each) with per-model
+tuning tables in
 `models/outputs/` alongside the leaderboard, confusion matrices, SHAP summary, calibration curve, and
 ROC/PR curves.
 

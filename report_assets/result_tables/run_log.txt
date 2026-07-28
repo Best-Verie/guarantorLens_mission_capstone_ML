@@ -1,0 +1,303 @@
+run log -> models/guarantorlens_new/run_log.txt
+rows: 55134 | loans: 11015 | branches: 11
+guarantors per loan by outcome:
+              size  median      mean
+label                               
+Normal       10789     3.0  2.503476
+Written off    226     3.0  2.513274
+
+loans=11015  defaults=226  bad_rate=2.1%  branches=11
+TARGET LABEL:  1 = Written off (default)   0 = Normal (good loan)
+label
+0 = Normal (good)            10789
+1 = Written off (default)      226
+bad rate (share defaulting) = 2.05%
+
+MERGED dataset: 11,015 loans x 15 columns  |  11 branches
+
+first rows of the merged dataset:
+feature table: (11015, 24) | communities: 1288
+MATURED COHORT 2022-01-01..2023-12-31: loans=11015 defaults=226 rate=2.1%
+
+leakage screen (|date_corr|>0.40 = dropped):
+                     feature  single_auc  date_corr      group
+                  log_amount       0.432       0.13 individual
+                     savings       0.576      -0.16 individual
+                      salary       0.665      -0.08 individual
+               interest_rate       0.846      -0.08 individual
+             loan_to_savings       0.372      -0.01 individual
+              loan_to_salary       0.293      -0.01 individual
+                 account_age       0.306      -0.03 individual
+               b_prior_loans       0.519       0.00 individual
+            b_prior_writeoff       0.520      -0.01 individual
+        b_prior_arrears_rate       0.520      -0.01 individual
+        time_since_last_loan       0.286       0.42 individual
+              b_recent_loans       0.519       0.00 individual
+                n_guarantors       0.515       0.04    network
+              g_mean_savings       0.552      -0.08    network
+               g_mean_salary       0.630      -0.12    network
+        g_prior_default_rate       0.595      -0.03    network
+        g_prior_arrears_rate       0.670      -0.01    network
+                 g_sav_ratio       0.456      -0.02    network
+community_prior_default_rate       0.732      -0.19    network
+
+DROPPED as time-proxy: ['time_since_last_loan']
+kept: 18 features
+class counts:
+label
+Normal         10789
+Written off      226
+hold-out: train=8265 (bad 173)  test=2750 (bad 53)
+RandomizedSearchCV: 15 experiments/model x 2 feature sets x 5-fold CV
+PR-AUC baseline (bad rate): 0.021
+             features               model  settings_tried  cv_pr_auc  roc_auc    f1  precision  recall  accuracy
+borrower_plus_network             xgboost              15      0.659    0.951 0.627      0.910   0.479     0.988
+        borrower_only             xgboost              15      0.641    0.942 0.607      0.861   0.470     0.988
+        borrower_only       random_forest              15      0.572    0.931 0.510      0.431   0.631     0.976
+borrower_plus_network       random_forest              15      0.531    0.945 0.503      0.460   0.568     0.978
+        borrower_only       decision_tree              15      0.374    0.874 0.221      0.130   0.790     0.884
+borrower_plus_network     feed_forward_nn              15      0.348    0.886 0.238      0.659   0.151     0.981
+borrower_plus_network logistic_regression              15      0.346    0.893 0.216      0.570   0.137     0.980
+        borrower_only     feed_forward_nn              15      0.329    0.904 0.141      0.749   0.079     0.981
+borrower_plus_network       decision_tree              15      0.329    0.852 0.214      0.125   0.777     0.885
+        borrower_only logistic_regression              15      0.278    0.882 0.088      0.633   0.049     0.980
+       strategy  pr_auc  roc_auc
+   class_weight   0.593    0.944
+BorderlineSMOTE   0.543    0.949
+     SMOTETomek   0.519    0.942
+          SMOTE   0.516    0.940
+         ADASYN   0.512    0.940
+    undersample   0.434    0.938
+
+-> We generated synthetic defaults with SMOTE + 3 variants; none beat class weighting on PR-AUC.
+   Literature agrees: oversampling mainly helps weak learners and harms calibration, and our
+   model is a strong, calibrated tree. (Elor & Averbuch 2022; van den Goorbergh JAMIA 2022.)
+default scale_pos_weight (neg/pos) = 47.7
+ scale_pos_weight  pr_auc  roc_auc  best_f1              note
+                1   0.653    0.952    0.660                  
+                2   0.650    0.953    0.654                  
+                5   0.634    0.951    0.645                  
+               10   0.623    0.947    0.639                  
+               25   0.606    0.947    0.603                  
+               48   0.594    0.945    0.586 neg/pos heuristic
+               75   0.584    0.944    0.581                  
+              100   0.573    0.943    0.571                  
+
+-> best PR-AUC at scale_pos_weight = 1. The neg/pos heuristic (48) over-weights the
+   minority and lowers PR-AUC; less re-weighting ranks better, and the operating threshold gives the recall.
+
+Adopted scale_pos_weight = 1 for the deployed model (down from the neg/pos heuristic 48).
+
+=== logistic_regression: all 15 experiments - full metrics, best (rank 1) row highlighted ===
+
+=== decision_tree: all 15 experiments - full metrics, best (rank 1) row highlighted ===
+
+=== random_forest: all 15 experiments - full metrics, best (rank 1) row highlighted ===
+
+=== xgboost: all 15 experiments - full metrics, best (rank 1) row highlighted ===
+
+=== feed_forward_nn: all 15 experiments - full metrics, best (rank 1) row highlighted ===
+
+=== BEST SETTING PER MODEL FAMILY (full metrics) ===
+              model              features  cv_pr_auc  roc_auc    f1  precision  recall  accuracy                                                                                                                                                                                                best_params
+            xgboost borrower_plus_network      0.659    0.951 0.627      0.910   0.479     0.988 {'clf__colsample_bytree': 0.7975990992289792, 'clf__learning_rate': 0.048944881947980225, 'clf__max_depth': 3, 'clf__n_estimators': 566, 'clf__scale_pos_weight': 1, 'clf__subsample': 0.8760253496991544}
+      random_forest         borrower_only      0.572    0.931 0.510      0.431   0.631     0.976                                                                                                                            {'clf__max_depth': None, 'clf__max_features': None, 'clf__min_samples_leaf': 9}
+      decision_tree         borrower_only      0.374    0.874 0.221      0.130   0.790     0.884                                                                                                                                                         {'clf__max_depth': 9, 'clf__min_samples_leaf': 28}
+    feed_forward_nn borrower_plus_network      0.348    0.886 0.238      0.659   0.151     0.981                                                                                                                                 {'clf__alpha': 0.0006870614282613297, 'clf__hidden_layer_sizes': (64, 32)}
+logistic_regression borrower_plus_network      0.346    0.893 0.216      0.570   0.137     0.980                                                                                                                                                 {'clf__C': 0.04661686413912769, 'clf__class_weight': None}
+
+>>> BEST FAMILY: xgboost (CV PR-AUC 0.659, F1 0.627, ROC 0.951). We deploy the +network XGBoost.
+logistic_regression  PR-AUC 0.332 | @>=80% recall precision 0.135, caught 181/226 write-offs
+decision_tree        PR-AUC 0.344 | @>=80% recall precision 0.021, caught 226/226 write-offs
+random_forest        PR-AUC 0.523 | @>=80% recall precision 0.199, caught 181/226 write-offs
+xgboost              PR-AUC 0.655 | @>=80% recall precision 0.237, caught 181/226 write-offs
+feed_forward_nn      PR-AUC 0.326 | @>=80% recall precision 0.099, caught 181/226 write-offs
+XGBoost final log-loss: train 0.018, validation 0.038 (gap 0.020; small gap = not over-fitting)
+Neural net converged in 44 epochs; final training loss 0.058
+Learning curve: CV PR-AUC rises from 0.554 (30% of data) to 0.653 (all data); still rising = more data would help
+network contribution:
+                model  pr_auc  roc_auc
+  baseline (bad rate)   0.021    0.500
+        borrower_only   0.641    0.942
+         network_only   0.237    0.827
+borrower_plus_network   0.653    0.952
+
+network PR-AUC lift: +0.012  95% CI [-0.019,+0.044] -> positive but not significant (homophily: risky borrowers cluster with risky guarantors)
+ROC-AUC borrower-only 0.942 -> +network 0.952 (the network improves ranking)
+XGBoost - feature-set comparison (PR-AUC/ROC-AUC, and precision/recall/F1 at >=80% recall):
+          feature_set  pr_auc  roc_auc  precision  recall    f1
+        borrower_only   0.641    0.942      0.170   0.801 0.280
+         network_only   0.237    0.827      0.051   0.801 0.095
+borrower_plus_network   0.653    0.952      0.250   0.801 0.381
+
+borrower+network caught 181/226 write-offs with 544 false alarms at >=80% recall.
+Linear variance of each network feature shared with the borrower features (in-sample R^2):
+  n_guarantors                   R^2 = 0.02
+  g_mean_savings                 R^2 = 0.14
+  g_mean_salary                  R^2 = 0.38
+  g_prior_default_rate           R^2 = 0.05
+  g_prior_arrears_rate           R^2 = 0.12
+  g_sav_ratio                    R^2 = 0.58
+  community_prior_default_rate   R^2 = 0.10
+
+Stronger network features kept after the leakage screen: ['g_n_prior_defaulters', 'g_max_backed_troubled', 'g_min_savings', 'g_savings_cv', 'community_size']
+
+PR-AUC (borrower-grouped out-of-fold):
+  borrower-only                    0.641
+  borrower + network (deployed)    0.653   lift +0.012
+  borrower + residualised network  0.622   lift -0.019
+  borrower + STRONGER network      0.642   lift +0.002  95% CI [-0.018, +0.023]
+
+-> The residualised network adds nothing, and stronger aggregations do not lift PR-AUC beyond noise.
+   The small network contribution is genuine homophily/redundancy (risky borrowers cluster with risky
+   guarantors), not weak feature engineering. The network is kept for the flags, contagion, advisor and ROC.
+[Selected model (unconstrained)] threshold 0.032 for >= 80% recall
+  confusion [[TN 10245, FP 544], [FN 45, TP 181]]
+  recall 0.801  precision 0.250  f1 0.381  accuracy 0.947  (caught 181/226 write-offs, 544 false alarms)
+every model at >= 80% recall:
+             features               model  threshold    tn    fp  fn  tp  recall  precision    f1  pr_auc
+borrower_plus_network             xgboost      0.025 10206   583  45 181   0.801      0.237 0.366   0.655
+        borrower_only             xgboost      0.023 10023   766  45 181   0.801      0.191 0.309   0.637
+        borrower_only       random_forest      0.181  9973   816  45 181   0.801      0.182 0.296   0.567
+borrower_plus_network       random_forest      0.211 10059   730  45 181   0.801      0.199 0.318   0.523
+        borrower_only       decision_tree      0.105  9069  1720  42 184   0.814      0.097 0.173   0.393
+borrower_plus_network       decision_tree      0.000     0 10789   0 226   1.000      0.021 0.040   0.344
+borrower_plus_network logistic_regression      0.025  9633  1156  45 181   0.801      0.135 0.232   0.332
+borrower_plus_network     feed_forward_nn      0.031  9146  1643  45 181   0.801      0.099 0.177   0.326
+        borrower_only     feed_forward_nn      0.052  9810   979  45 181   0.801      0.156 0.261   0.320
+        borrower_only logistic_regression      0.030  9640  1149  45 181   0.801      0.136 0.233   0.258
+PR-AUC 0.653 = 32x the 2.1% base rate;  ROC-AUC 0.952
+
+          operating_point  threshold  precision  recall    f1  accuracy
+  recall>=80% (screening)      0.032      0.250   0.801 0.381     0.947
+    F1-optimal (balanced)      0.343      0.817   0.553 0.660     0.988
+precision>=0.50 (precise)      0.139      0.500   0.633 0.559     0.979
+
+-> Precision and F1 are low ONLY at the recall-first screening threshold. At an F1-optimal cut the same
+   model reads precision ~0.6-0.7. Low precision at high recall is inherent to a 2.1% base rate, not a fault.
+               method   roc    pr
+      IsolationForest 0.889 0.232
+   LocalOutlierFactor 0.598 0.031
+Supervised (+network) 0.952 0.653
+
+-> The trained model clearly beats both anomaly detectors: unsupervised FAILS here.
+                     feature  mean_abs_shap       kind
+               interest_rate       0.809501 individual
+                      salary       0.786853 individual
+              loan_to_salary       0.538679 individual
+                 account_age       0.497015 individual
+                 g_sav_ratio       0.457663    network
+             loan_to_savings       0.414733 individual
+                     savings       0.282716 individual
+community_prior_default_rate       0.221512    network
+              g_mean_savings       0.192921    network
+               g_mean_salary       0.183188    network
+                  log_amount       0.150256 individual
+        g_prior_arrears_rate       0.106663    network
+                n_guarantors       0.065307    network
+        g_prior_default_rate       0.013905    network
+        b_prior_arrears_rate       0.000000 individual
+            b_prior_writeoff       0.000000 individual
+               b_prior_loans       0.000000 individual
+              b_recent_loans       0.000000 individual
+Permutation importance (mean drop in PR-AUC when a feature is shuffled):
+                     feature  perm_importance       kind
+                      salary           0.2902 individual
+               interest_rate           0.1993 individual
+                 account_age           0.1320 individual
+             loan_to_savings           0.0688 individual
+              loan_to_salary           0.0406 individual
+                 g_sav_ratio           0.0349    network
+                  log_amount           0.0242 individual
+                     savings           0.0167 individual
+        g_prior_arrears_rate           0.0098    network
+                n_guarantors           0.0016    network
+        b_prior_arrears_rate           0.0000 individual
+            b_prior_writeoff           0.0000 individual
+               b_prior_loans           0.0000 individual
+              b_recent_loans           0.0000 individual
+        g_prior_default_rate          -0.0003    network
+               g_mean_salary          -0.0017    network
+              g_mean_savings          -0.0043    network
+community_prior_default_rate          -0.0056    network
+test PR-AUC (calibrated): 0.746
+[After calibration (isotonic)] threshold 0.045 for >= 80% recall
+  confusion [[TN 10099, FP 690], [FN 45, TP 181]]
+  recall 0.801  precision 0.208  f1 0.330  accuracy 0.933  (caught 181/226 write-offs, 690 false alarms)
+constrained   PR-AUC 0.603  ROC-AUC 0.932
+unconstrained PR-AUC 0.653  ROC-AUC 0.952  (small accuracy traded for a believable model)
+
+=== FINAL METRICS SUMMARY (out-of-fold, borrower-grouped CV) ===
+                                  model  pr_auc  roc_auc
+                    baseline (bad rate)   0.021    0.500
+                          borrower-only   0.641    0.942
+                           network-only   0.237    0.827
+       borrower+network (unconstrained)   0.653    0.952
+borrower+network (monotone -> DEPLOYED)   0.603    0.932
+
+saved bundle -> models/guarantorlens_new/guarantorlens_serving.joblib | bands: {'medium': 0.008, 'high': 0.028}
+[Deployed model (monotone + calibrated)] threshold 0.017 for >= 80% recall
+  confusion [[TN 9784, FP 1005], [FN 45, TP 181]]
+  recall 0.801  precision 0.153  f1 0.256  accuracy 0.905  (caught 181/226 write-offs, 1005 false alarms)
+saved members (22,485) + loans (11,015) json (LOCAL - real data)
+CASE A - small loan (300k) vs big savings (2M), clean, 13%% : 0.3%% risk (expect low)
+CASE B - big loan (6M), thin savings (50k), 14%%           : 14.3%% risk (expect high)
+
+Raise SAVINGS (loan 2M) - risk must FALL:
+   savings=       50000 ->   6.6% risk
+   savings=      300000 ->   4.8% risk v
+   savings=       1e+06 ->   4.8% risk v
+   savings=       5e+06 ->   4.8% risk v
+
+Raise LOAN amount (savings 500k) - risk must RISE:
+   amount=      300000 ->   4.8% risk
+   amount=       1e+06 ->   4.8% risk v
+   amount=       3e+06 ->   4.8% risk v
+   amount=       6e+06 ->   9.0% risk ^
+
+Worse COMMUNITY default history - risk must RISE:
+   community_prior_default_rate=           0 ->   4.8% risk
+   community_prior_default_rate=         0.1 ->   7.8% risk ^
+   community_prior_default_rate=         0.3 ->   8.7% risk ^
+   community_prior_default_rate=         0.6 ->   9.0% risk ^
+
+(Bands are relative percentiles of the portfolio, so the app remaps these to Low/Medium/High;
+ what matters here is each factor moves risk in the sensible direction.)
+loans 11015  written-off 226 (2.1%)  members 22485
+graph: 22,485 members (nodes), 25,624 guarantee links (edges)
+Louvain found 1,366 communities  |  modularity = 0.991 (higher = cleaner groups)
+
+Riskiest guarantee communities (>=30 loans):
+      members  loans  bad  bad_rate
+comm                               
+1037       61     40   11     0.275
+405       135     78   13     0.167
+1115       99     55    6     0.109
+196       172    105   10     0.095
+1035       83     43    3     0.070
+220        87     50    3     0.060
+163       127     65    3     0.046
+174       125     67    3     0.045
+784        84     45    2     0.044
+236        92     49    2     0.041
+
+1-hop exposure: 173 loans are guaranteed by a written-off member, RWF 364,376,000 at stake
+cascade reach per round: [217, 310, 349, 367, 377]
+ group  survival_12mo  survival_24mo
+   all         0.9997         0.9797
+ small         0.9995         0.9827
+medium         1.0000         0.9850
+ large         0.9997         0.9713
+
+Reading it: ~98% of loans are still performing at 24 months; large loans fail soonest.
+KMeans k=4  |  silhouette = 0.330 (higher = better-separated types)
+         loans  bad_rate   avg_amount  median_savings  avg_guarantors
+cluster                                                              
+0         3534     0.020  1643938.706        179669.5           1.982
+1         1345     0.028  3015156.134       1080008.0           2.418
+2         3631     0.018  1589812.841        149850.0           3.008
+3         2505     0.022  3134480.639        258023.0           2.554
+
+Anomaly flag (most unusual 10%): write-off rate 6.9% vs portfolio 2.1%  ->  3.4x more likely to default
+
+saved extra bundle -> models/guarantorlens_new/guarantorlens_extra.joblib
