@@ -1,6 +1,0 @@
-model,cv_pr_auc,oof_pr_auc,oof_roc_auc,fit_time_s
-XGBoost,0.629,0.623,0.938,4.2
-Random Forest,0.484,0.481,0.949,6.8
-Neural Net (MLP),0.347,0.336,0.881,3.9
-Logistic Regression,0.344,0.335,0.899,5.0
-Decision Tree,0.264,0.27,0.845,2.3

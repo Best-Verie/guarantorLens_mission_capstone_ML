@@ -1,6 +1,0 @@
-model,pr_auc,roc_auc
-baseline (bad rate),0.021,0.5
-borrower-only,0.641,0.942
-network-only,0.237,0.827
-borrower+network (unconstrained),0.653,0.952
-borrower+network (monotone -> DEPLOYED),0.603,0.932

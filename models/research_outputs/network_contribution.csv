@@ -1,5 +1,0 @@
-feature set,PR-AUC,ROC-AUC
-borrower-only,0.611,0.927
-network-only,0.214,0.798
-borrower + network,0.574,0.939
-borrower + residualised network,0.577,0.931

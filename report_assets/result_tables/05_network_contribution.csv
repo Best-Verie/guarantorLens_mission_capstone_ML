@@ -1,5 +1,0 @@
-model,pr_auc,roc_auc
-baseline (bad rate),0.021,0.5
-borrower_only,0.641,0.942
-network_only,0.237,0.827
-borrower_plus_network,0.653,0.952

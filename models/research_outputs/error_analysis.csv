@@ -1,7 +1,0 @@
-,caught write-off (TP),missed write-off (FN),false alarm (FP)
-interest_rate,13.89,13.43,13.58
-savings,460879.12,472666.89,471818.31
-loan_to_savings,13.11,4226.43,40784.74
-b_prior_arrears_rate,0.05,0.0,0.0
-g_prior_arrears_rate,0.23,0.04,0.07
-community_prior_default_rate,0.24,0.04,0.09
